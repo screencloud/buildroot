@@ -1,7 +1,5 @@
 if BR2_TOOLCHAIN_BUILDROOT_GLIBC
 
-comment "Glibc Options"
-
 config BR2_PACKAGE_GLIBC
 	bool
 	default y
@@ -18,12 +16,12 @@ config BR2_PACKAGE_GLIBC_GEN_LD_CACHE
 	select BR2_PACKAGE_HOST_QEMU
 	select BR2_PACKAGE_HOST_QEMU_LINUX_USER_MODE
 
+config BR2_PACKAGE_GLIBC_2_22
+	bool "glibc 2.22"
+	default y if !BR2_TOOLCHAIN_HEADERS_AT_LEAST_3_2
+	# No support for pthread barriers on < v9 ISA
+	depends on !BR2_sparc
+
 endif
 
-config BR2_PACKAGE_GLIBC_UTILS
-	bool "Install glibc utilities"
-	help
-	  Enabling this option will compile and install the getconf,
-	  ldconfig, ldd and locale glibc utilities for the target.
-
-endif # BR2_TOOLCHAIN_BUILDROOT_GLIBC
+endif
