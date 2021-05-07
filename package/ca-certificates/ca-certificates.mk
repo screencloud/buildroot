@@ -19,6 +19,13 @@ define CA_CERTIFICATES_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/share/ca-certificates
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/etc/ssl/certs
 	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) install DESTDIR=$(TARGET_DIR)
+
+	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/share/ca-certificates/sc_custom_certs
+	for i in `find package/ca-certificates/custom_certs -name "*.crt"`; do \
+	    echo $$i; \
+		$(INSTALL) -D -m 0644 $$i $(TARGET_DIR)/usr/share/ca-certificates/sc_custom_certs; \
+	done 
+
 	rm -f $(TARGET_DIR)/usr/sbin/update-ca-certificates
 
 	# Remove any existing certificates under /etc/ssl/certs
