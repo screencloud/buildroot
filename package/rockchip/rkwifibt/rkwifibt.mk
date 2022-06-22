@@ -70,8 +70,6 @@ endef
 
 define RKWIFIBT_BROADCOM_INSTALL
     $(INSTALL) -D -m 0644 $(@D)/firmware/broadcom/$(BR2_PACKAGE_RKWIFIBT_CHIPNAME)/wifi/* $(TARGET_DIR)/$(FIRMWARE_DIR)/etc/firmware/
-    -$(INSTALL) -D -m 0644 $(@D)/firmware/broadcom/$(RK_WIFI_CHIP_NAME1)/wifi/* $(TARGET_DIR)/$(FIRMWARE_DIR)/etc/firmware/
-    -$(INSTALL) -D -m 0644 $(@D)/firmware/broadcom/$(RK_WIFI_CHIP_NAME2)/wifi/* $(TARGET_DIR)/$(FIRMWARE_DIR)/etc/firmware/
     $(INSTALL) -D -m 0755 $(@D)/brcm_tools/brcm_patchram_plus1 $(TARGET_DIR)/usr/bin/
     $(INSTALL) -D -m 0755 $(@D)/brcm_tools/dhd_priv $(TARGET_DIR)/usr/bin/
     $(INSTALL) -D -m 0755 $(@D)/bin/$(RKWIFIBT_ARCH)/* $(TARGET_DIR)/usr/bin/
@@ -130,6 +128,7 @@ define RKWIFIBT_INSTALL_TARGET_CMDS
 endef
 endif
 
+
 ifeq ($(BR2_PACKAGE_RKWIFIBT_VENDOR), "CYPRESS")
 define RKWIFIBT_INSTALL_TARGET_CMDS
     $(RKWIFIBT_INSTALL_COMMON)
@@ -168,6 +167,55 @@ define RKWIFIBT_INSTALL_TARGET_CMDS
     $(RKWIFIBT_ROCKCHIP_INSTALL)
 endef
 endif
+
+
+
+ifeq ($(BR2_PACKAGE_RKWIFIBT_VENDOR), "STATIONP1META")
+define RKWIFIBT_INSTALL_TARGET_CMDS
+
+#COMMON
+    mkdir -p $(TARGET_DIR)/lib/firmware $(TARGET_DIR)/$(FIRMWARE_DIR)/etc/firmware
+    #broadcom driver loads firmware from /vendor/etc/firmware
+    ln -sf $(FIRMWARE_DIR) $(TARGET_DIR)/vendor
+
+    #some common precompiled tools (dhd,rtlbtmp,rtwpriv,wl)
+    #TODO: remove if we don't need them
+    $(INSTALL) -D -m 0744 $(@D)/bin/$(RKWIFIBT_ARCH)/* $(TARGET_DIR)/usr/bin/
+
+#REALTEK  WIFI
+# There doesn't seem to be a proper WIFI firmware that needs to be loaded!
+# note that the "rtl8723du_config" and "rtl8723du_fw" files
+
+    #TODO: Do we need "rtwpriv"
+    $(INSTALL) -D -m 0744 $(@D)/bin/$(RKWIFIBT_ARCH)/rtwpriv $(TARGET_DIR)/usr/bin/
+
+#REALTEK  BLUETOOTH
+
+    #install BLUETOOTH firmware files
+    $(INSTALL) -D -m 0644 $(@D)/firmware/realtek/bt/* $(TARGET_DIR)/lib/firmware/
+    
+
+
+#BROADCOM WIFI & BLUETOOTH
+    #compile and install "brcm_patchram_plus1" tool
+    $(TARGET_CC) -o $(@D)/brcm_tools/brcm_patchram_plus1 $(@D)/brcm_tools/brcm_patchram_plus1.c
+    $(INSTALL) -D -m 0744 $(@D)/brcm_tools/brcm_patchram_plus1 $(TARGET_DIR)/usr/bin/    
+
+    #compile and install "dhd_priv" tool
+    #TODO: do we really need "dhd_priv" ?
+    $(TARGET_CC) -o $(@D)/brcm_tools/dhd_priv $(@D)/brcm_tools/dhd_priv.c
+    $(INSTALL) -D -m 0744 $(@D)/brcm_tools/dhd_priv $(TARGET_DIR)/usr/bin/
+
+    #install WIFI firmware files
+    $(INSTALL) -D -m 0644 $(@D)/firmware/broadcom/AP625?/wifi/* $(TARGET_DIR)/$(FIRMWARE_DIR)/etc/firmware/
+
+    #install BLUETOOTH firmware files
+    $(INSTALL) -D -m 0644 $(@D)/firmware/broadcom/AP625?/bt/* $(TARGET_DIR)/$(FIRMWARE_DIR)/etc/firmware/
+    
+
+
+endef
+endif #ifeq ($(BR2_PACKAGE_RKWIFIBT_VENDOR), "STATIONP1META")
 
 define RKWIFIBT_POST_INSTALL_TARGET_HOOKS_CMDS
     -rm -f $(@D)/$(SXLOAD_WIFI)
